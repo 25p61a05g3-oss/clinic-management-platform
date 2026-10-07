@@ -2,26 +2,35 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import Base, engine
-from routes.appointments import router as appointments_router
-from routes.patients import router as patients_router
-from routes.doctors import router as doctors_router
+from routes import patients, doctors, appointments
 
-import models
 
+# Create database tables
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(
-    title="Clinic Management Platform"
-)
+app = FastAPI()
 
+
+# Allow the deployed React frontend to communicate with the API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
-    allow_credentials=True,
+    allow_origins=[
+        "https://clinic-management-platform-1.onrender.com"
+    ],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(appointments_router)
-app.include_router(patients_router)
-app.include_router(doctors_router)
+
+# API routes
+app.include_router(patients.router)
+app.include_router(doctors.router)
+app.include_router(appointments.router)
+
+
+@app.get("/")
+def root():
+    return {
+        "message": "Clinic Management API is running"
+    }
